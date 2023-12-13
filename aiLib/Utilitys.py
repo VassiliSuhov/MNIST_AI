@@ -6,8 +6,17 @@ BASE_DIR = os.path.dirname(os.path.realpath(__file__))[:-5]
 
 def TestTrainSet():
     return 1
+
+
 def sigmoid(x):
-    return 1/(1 + 2.71 ** - x.sum())
+    return 1 / (1 + np.exp(-x))
+
+
+def BackPropSigmoid(ForwardGradients, outputs , inputs):
+    return ForwardGradients *  (1 - outputs)
+
+
+
 
 def linear(x):
     return x
@@ -15,25 +24,58 @@ def linear(x):
 def relu(x):
     return max(0 , x)
 
+def BackPropRelu(outputsGrads , outputs , inputs):
+    return np.where(outputsGrads > 0 , outputsGrads , outputsGrads*0)
 def tanh(x):
     return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
 
 def softmax(x):
     # remove largest value
-   # expx = np.exp(x - np.max(x))
-    #return expx / expx.sum(axis=0, keepdims=True)
-    return x / x.sum(axis=0, keepdims=True)
+    exps = np.exp(x)
+    return exps / np.sum(exps)
 
 
 
+
+def BackPropSoftmax(outputGradients , outputs ,inputs):
+     n = np.size(outputs)
+     return np.dot((np.identity(n) - outputs.T) * outputs, outputGradients)
+
+
+
+
+
+def CalculateLayerDerivative(forwardGradients, weights , inputs):
+    #gradients of the weights
+    grad_weights = forwardGradients[0] * inputs
+    for i in range(1 ,len(forwardGradients)):
+        grad_weights = np.vstack((grad_weights , inputs * forwardGradients[i]))
     
-activationFunctions = [sigmoid , linear , tanh , softmax]
+    inputs_grad = weights[0] * forwardGradients[0]
+    for i in range(1 ,len(forwardGradients)):
+        inputs_grad = np.vstack((inputs_grad , weights[i] * forwardGradients[i]))
+        
+    inputs_grad = np.sum(inputs_grad , axis=0)
+    #deleting the last input grad because it containes the 1
+    return[ np.delete(inputs_grad, len(inputs_grad) - 1) , grad_weights]
+
+
+
+activationFunctions = [sigmoid , linear , tanh , softmax , relu]
+
+backPropFunctions = [BackPropSigmoid , 1 , 1 , BackPropSoftmax , ]
 
 
 def compute_loss(y , realY):
     
-    lenght = realY.shape[0]
+    
     return  np.sum((y - realY) ** 2)
+
+def BackpropagateLossFunction(outputs , Realy):
+    #so the derivative of the loss is 1
+    #then the way you get the loss is (y - realY) * (y - realY)
+    #so the derivative is (y - realY)
+    return (outputs - Realy)
 
 
 def createzeros(shape):
@@ -160,5 +202,14 @@ class baseUtulitys:
         init.close()
         return
     
-        
     
+"""  
+a = np.array([3, 6 , 2])
+b = np.array([[5 , 5 , 5 , 5] , [6 , 6, 6, 6] , [ 7, 7 , 7 , 7]])
+c = np.array([9,9,9,1])
+
+
+
+d = CalculateLayerDerivative(a, b, c)
+print(d)
+"""

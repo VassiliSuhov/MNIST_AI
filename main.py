@@ -11,7 +11,7 @@ def LoadDataSetMNIST():
     return keras.datasets.mnist.load_data(path = DATASET_PATH)
 
 def LoadTrainSet():
-    Limit = 60000
+    Limit = 40000
     dataset =  keras.datasets.mnist.load_data(path = DATASET_PATH)
     return dataset[0][0][:Limit] , dataset[0][1][:Limit]
 
@@ -48,11 +48,18 @@ x , y = LoadTrainSet()
 
 x = Format(x)
 
-y = ForamtYMNIST(y)
+y_ = ForamtYMNIST(y)
 
 
-model = NeuralNetwork(4)
-model.OptimizeAmount(10, x, y, 2)
+x_test = x[1]
+y_test = y[1]
+
+model = NeuralNetwork(5)
+
+
+data_layers = model.OptimizeAmount(100, x, y_, 0.1 , 1000)
+
+
 
 def Testparams(x , y):
     wins = 0
@@ -78,5 +85,4 @@ def Testparams(x , y):
     print("accuracy")
     print(wins / (wins + loss))
     
-#Testparams(x , y)
 

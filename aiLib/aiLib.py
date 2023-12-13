@@ -3,7 +3,7 @@
 import numpy as np
 import math
 from . import Utilitys
-
+import random
 
 import json
 #your path here 
@@ -22,14 +22,12 @@ class layer:
         result = np.matmul( self.params , inputs)
         
         return Utilitys.activationFunctions[self.activationType](result)
-  
+    
+    
     
   
     
-class simplemethod(Utilitys.baseUtulitys):
-    def simplefinc(self):
-        return
-    
+
   
 class NeuralNetwork(Utilitys.baseUtulitys):
     def __init__(self , paramFileIndex):
@@ -176,78 +174,121 @@ class NeuralNetwork(Utilitys.baseUtulitys):
         return loss
     
     
+    def ComputeGradients(self , x ,y):
+        
+        data_layers = self.FullDataCompute(self.layers, x)
+        len_data_layers = len(data_layers) -1 
+        
+        next_values = Utilitys.BackpropagateLossFunction(data_layers[-1], y )
+        gradients  = []
+        start_ = len(self.layers) -1
+        
+        for layerIndex in range(0 , len(self.layers)):
+            
+            
+            next_values = Utilitys.backPropFunctions[self.layers[start_].activationType](next_values , data_layers[len_data_layers],data_layers[len_data_layers - 1] )
+            len_data_layers -= 2
+            results = Utilitys.CalculateLayerDerivative(next_values, self.layers[start_],np.append( data_layers[len_data_layers] , 1))
+            next_values = results[0]
+            gradients.insert(0, results[1])
+            start_ -=1
+            
+        """  
+        step_1 = Utilitys.BackPropSigmoid(error , data_layers[-1] , None)
+         
+        
+        
+        
+        #step 2 we have the gradients of al the sigmoid results  now we get according to the layers
+        results  = Utilitys.CalculateLayerDerivative(step_1 , self.layers[1].params , np.append(data_layers[-3] , 1))
+        inputs_ = results[0]
+        layer_2 = results[1]
+        
+        
+       
+        
+        softmax_derivate = Utilitys.BackPropSoftmax(inputs_,  data_layers[-3],  data_layers[-4])
+        
+        results = Utilitys.CalculateLayerDerivative(softmax_derivate, self.layers[0].params , np.append(x , 1))
+        
+        layer_1 = results[1]
+        
+        
+        gradients = [layer_1 , layer_2]
+        """
+        return gradients
     
-   
+    
+    def BackPropagation(self , x , y , step , gradient , gradient_size):
         
-    def OptimizeAmount(self , amount , dataX, dataY , OptimizingSteps):
         
-        InitalStep = 10
-        step = InitalStep
-        loss_variation = [100.00]
         new_layers = self.layers
+        gradients = gradient
+        
+        for layerindex in range(0 , len(gradients)):
+            for x_ in range(0, gradients[layerindex].shape[0]):
+                for y_ in range(0, gradients[layerindex].shape[1]):
+                    new_layers[layerindex].params[x_, y_] -=  (gradients[layerindex][x_, y_] * step)/gradient_size
         
         
-        MINIMAL_DISTANCE = 0.0001
+      
+        return new_layers
+        #now we get the layers
+        #backwards the 
+        #step_3 = Utilitys.BackPropSoftmax(inputs_, data_layers[-3] , None)
+        
+        #inputs_1 , layer_1 = Utilitys.CalculateLayerDerivative(step_3 ,  self.layers[0].params, self.data_layers[0])
+        
+        #print(layer_1)
+        
+    ##instead of just computing the result , it saves the calculations after each step
+    
+    def FullDataCompute(self, layers , x ):
+        
+        data_layers = [x]
+        
+        for layerIndex in range(0, len(layers)):
+            
+            x = np.append( data_layers[-1], 1)
+            data_layers.append( np.matmul(layers[layerIndex].params , x ))
+            data_layers.append(Utilitys.activationFunctions[layers[layerIndex].activationType](data_layers[-1]))
+            
+        return data_layers
+                              
         
         
-        MINIMUM_LOSSVARIATION = 0.00001
-        STEP_BUMP = 0.05
-        i = 10
-        xtest = dataX[i]
-        ytest = dataY[i]
+    
+    def OptimizeAmount(self , amount , dataX, dataY , OptimizingSteps,sample_amount):
+        data_length = len(dataX) - 1 
         
-        
-        
+        loss = self.GetLoss(dataX, dataY, self.layers)
+        print("global error")
+        print(loss)
         
         for epoch in range(0 , amount):
-            
-            loss = self.GetLoss(dataX , dataY , new_layers)
-            print("cycle # : " + str(epoch))
-            print(loss)
+            index = random.randint(0, data_length)
+            gradient = self.ComputeGradients(dataX[index], dataY[index])
             
             
+            for z in range(0 , sample_amount):
+                index = random.randint(0, data_length)
+                new_grad = self.ComputeGradients(dataX[index], dataY[index])
+                for layer in range(0 , len(gradient)):
+                    gradient[layer] += new_grad[layer]
+              
+                
+            new_layer = self.BackPropagation(dataX[index], dataY[index], OptimizingSteps , gradient , sample_amount + 1)
             
+            new_loss = self.GetLoss(dataX, dataY, new_layer)
             
-            if(loss >= loss_variation[-1]):
-                new_layers = self.layers 
-                if(loss == loss_variation[-1]):
-                   step = step * 2
-                else:
-                   step = step / 2
-                print('adjusting training process')
-                xtest = dataX[i]
-                ytest = dataY[i]
-                i+=1
-                
-            else:
-                self.layers = new_layers
-                
-                if(loss_variation[-1] - loss <  MINIMUM_LOSSVARIATION):
-                    step = step + STEP_BUMP
-                    xtest = dataX[i]
-                    ytest = dataY[i]
-                    i+=1
-                
-                loss_variation.append(loss)
-                
+            print("global loss")
+            print(new_loss)
             
-                
-            initalLoss = Utilitys.compute_loss(self.ComputeModel(xtest , new_layers) , ytest)
-
-            for OptimizingStep in range(0 , OptimizingSteps):
-                
-                for layerindex in range(0, len(self.layers)):
-                    
-                    for x in range(0 , new_layers[layerindex].params.shape[0] ):
-                        for y in range(0 , new_layers[layerindex].params.shape[1] ):
-                            
-                            layers = new_layers
-                            layers[layerindex].params[x , y] += MINIMAL_DISTANCE
-                            variation = (Utilitys.compute_loss(self.ComputeModel(xtest , layers) , ytest) - initalLoss) / MINIMAL_DISTANCE
-                            
-                            new_layers[layerindex].params[x, y] -= variation * step
-                            #apply over each node ...
-                          
+            if(new_loss < loss):
+                print("updating loss")
+                loss = new_loss
+                self.layers = new_layer
+            
                 
                                 
             

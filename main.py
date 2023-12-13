@@ -11,7 +11,7 @@ def LoadDataSetMNIST():
     return keras.datasets.mnist.load_data(path = DATASET_PATH)
 
 def LoadTrainSet():
-    Limit = 40000
+    Limit = 60000
     dataset =  keras.datasets.mnist.load_data(path = DATASET_PATH)
     return dataset[0][0][:Limit] , dataset[0][1][:Limit]
 
@@ -41,7 +41,18 @@ def ForamtYMNIST(y):
 def loadtestSet():
     dataset =  keras.datasets.mnist.load_data(path = DATASET_PATH)
     return dataset[1][0] , dataset[1][1]
+
+def FormatAsJson(x , y):
+    data_x = []
+    data_y = []
+    for i in range(0 , len(x)):
+        data_x.append(x[i].tolist())
+        data_y.append(y[i].tolist())
     
+    f = open(Utilitys.BASE_DIR + "data.json" , "w")
+    f.write(json.dumps([data_x , data_y]))
+    f.close()
+        
 
 
 x , y = LoadTrainSet()
@@ -50,14 +61,14 @@ x = Format(x)
 
 y_ = ForamtYMNIST(y)
 
+FormatAsJson(x , y_)
+#x_test = x[1]
+#y_test = y[1]
 
-x_test = x[1]
-y_test = y[1]
-
-model = NeuralNetwork(5)
+#model = NeuralNetwork(0)
 
 
-data_layers = model.OptimizeAmount(100, x, y_, 0.1 , 1000)
+#data_layers = model.OptimizeAmount(50, x, y_, 0.1 , 1000)
 
 
 
@@ -69,6 +80,8 @@ def Testparams(x , y):
         
         highest_num = 0
         highest_index = 0
+        
+        
         
         for output in range(0 , len(prediction)):
             if(prediction[output] > highest_num):

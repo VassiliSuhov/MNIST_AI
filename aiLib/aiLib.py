@@ -188,7 +188,7 @@ class NeuralNetwork(Utilitys.baseUtulitys):
             
             next_values = Utilitys.backPropFunctions[self.layers[start_].activationType](next_values , data_layers[len_data_layers],data_layers[len_data_layers - 1] )
             len_data_layers -= 2
-            results = Utilitys.CalculateLayerDerivative(next_values, self.layers[start_],np.append( data_layers[len_data_layers] , 1))
+            results = Utilitys.CalculateLayerDerivative(next_values, self.layers[start_].params,np.append( data_layers[len_data_layers] , 1))
             next_values = results[0]
             gradients.insert(0, results[1])
             start_ -=1

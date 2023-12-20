@@ -4,7 +4,7 @@ import numpy as np
 import math
 from . import Utilitys
 import random
-
+import pyperclip
 import json
 #your path here 
 
@@ -58,10 +58,11 @@ class NeuralNetwork(Utilitys.baseUtulitys):
                 
                 num_layer = int(input())
                 
-                print("which activation do you want : 0 - sigmoid , 1 - linear , 2 -tanh , 3- softmax")
+                for num in range(0 , len(Utilitys.activationNames)):
+                    print(str(num) + "  " + Utilitys.activationNames[num])
                 
                 activation = int(input())
-                while activation > 3 or activation < 0:
+                while activation > len(Utilitys.activationNames) or activation < 0:
                     
                     activation = int(input("please provide a positif integer between 0 and 3"))
                     
@@ -115,7 +116,12 @@ class NeuralNetwork(Utilitys.baseUtulitys):
     
     #given our model create a javascript script of our model
     def BakeJavascript(self):
-        
+        cpt = 0
+        for layer in self.layers:
+            for x in range(0,layer.params.shape[0]):
+                pyperclip.copy("neuron" + str(cpt) + " = " + str(layer.params[x].tolist()))
+                cpt+=1
+                i = input()
         return
     
     def TurnModelToString(self):

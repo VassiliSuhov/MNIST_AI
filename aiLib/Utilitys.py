@@ -25,9 +25,14 @@ def relu(x):
     return max(0 , x)
 
 def BackPropRelu(outputsGrads , outputs , inputs):
-    return np.where(outputsGrads > 0 , outputsGrads , outputsGrads*0)
+    outputsGrads[outputsGrads < 0 ] = 0
+    return outputsGrads
+
+def BackpropTanh(outputsGrads , outputs , inputs):
+    return (1 - np.power(outputs , 2)) * outputsGrads
+    
 def tanh(x):
-    return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+    return np.tanh(x)
 
 def softmax(x):
     # remove largest value
@@ -59,11 +64,11 @@ def CalculateLayerDerivative(forwardGradients, weights , inputs):
     #deleting the last input grad because it containes the 1
     return[ np.delete(inputs_grad, len(inputs_grad) - 1) , grad_weights]
 
-
+activationNames = ["sigmoid" , "linear" , "tanh" , "softmax" , "relu"]
 
 activationFunctions = [sigmoid , linear , tanh , softmax , relu]
 
-backPropFunctions = [BackPropSigmoid , 1 , 1 , BackPropSoftmax , ]
+backPropFunctions = [BackPropSigmoid , 1 , BackpropTanh , BackPropSoftmax , BackPropRelu]
 
 
 def compute_loss(y , realY):

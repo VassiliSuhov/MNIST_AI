@@ -3,6 +3,8 @@
 import keras
 from aiLib.aiLib import *
 import numpy as np
+import pyperclip
+import matplotlib.pyplot as plt
 DATASET_PATH = "C:/Users/sukho/OneDrive/Documents/DataSets/mnist/mnist.npz"
 
 
@@ -49,29 +51,48 @@ def FormatAsJson(x , y):
         data_x.append(x[i].tolist())
         data_y.append(y[i].tolist())
     
-    f = open(Utilitys.BASE_DIR + "data.json" , "w")
+    f = open(Utilitys.BASE_DIR + "datatrain.json" , "w")
     f.write(json.dumps([data_x , data_y]))
     f.close()
         
+def LoadJson():
+    file = open(Utilitys.BASE_DIR + "data.json" , "r")
+    data = json.load(file)
+    x_ = []
+    y_ = []
+    lengt= min(10000, len(data[1]))
+    for i in range(0 , lengt):
+        x_.append(np.array(data[0][i]))
+        y_.append(np.array(data[1][i]))
+        
+    file.close()
+    return x_ , y_
 
 
-x , y = LoadTrainSet()
+'''
+
 
 x = Format(x)
-
 y_ = ForamtYMNIST(y)
 
-FormatAsJson(x , y_)
+FormatAsJson(x  , y)
+
 #x_test = x[1]
 #y_test = y[1]
+'''
 
+x , y = loadtestSet()
+
+plt.imshow(x[0])
+print(x[0].shape)
 #model = NeuralNetwork(0)
+#model.BakeJavascript()
 
 
-#data_layers = model.OptimizeAmount(50, x, y_, 0.1 , 1000)
+#data_layers = model.OptimizeAmount(50, x, y, 0.1 , 120)
 
 
-
+'''
 def Testparams(x , y):
     wins = 0
     loss = 0
@@ -97,5 +118,5 @@ def Testparams(x , y):
     print(loss)
     print("accuracy")
     print(wins / (wins + loss))
-    
-
+Testparams(x , y)   
+'''
